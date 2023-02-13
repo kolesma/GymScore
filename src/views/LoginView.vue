@@ -1,10 +1,11 @@
 <template>
   <div class="container">
-    <h4>Login page</h4>
+    <h5>Login page</h5>
     <q-input v-model="email" class="input" label="E-mail" type="email" outlined></q-input>
     <q-input v-model="password" class="input" label="Password" type="password" outlined></q-input>
 
     <q-btn :loading="loading" class="button" @click="login" color="primary" label="Login" />
+    <a href="/register">Create new account</a>
   </div>
 </template>
 
@@ -55,10 +56,10 @@ export default {
       try {
         let result = await signInWithEmailAndPassword(getAuth(), email.value, password.value)
         userStore.setUser(result.user)
-        $q.notify({message: "You successfully logged in", closeBtn: true, color:'success', position: 'top-right'})
+        $q.notify({message: "You successfully logged in", closeBtn: true, color:'success', position: 'bottom-right'})
         await $router.push("/")
       } catch (e) {
-        $q.notify({message: getErrorByCode(e.code), color:'red', position: 'top-right'})
+        $q.notify({message: getErrorByCode(e.code), color:'red', position: 'bottom-right'})
       }
 
       loading.value = false
