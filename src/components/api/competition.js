@@ -8,16 +8,28 @@ import {collection, doc, getDoc, getDocs, getFirestore} from "firebase/firestore
 export const getCompetitionByID = async (id) => {
     let data = await getDoc(doc(collection(getFirestore(), 'competitions'), id))
     if (data.exists()) {
-        let gymnastics = [{
-            name: "Kira", year: 1999, club: 'Arsenal', total: 26, ball: {
-                difficulty: 6, execution: 9, total: 15
-            }, floor: {
-                difficulty: 7, execution: 4, total: 11
-            }
-        }] //todo fetch from firebase
-
+        let gymnasticsDocs = await getDocs(collection(getFirestore(), "competitions", id, "gymnastics"))
+        let gymnastics = gymnasticsDocs.docs.map(e => ({...e.data(), id: e.id}))
+        console.log(gymnastics)
         let categoriesDocs = await getDocs(collection(getFirestore(), "subjects"))
         return {...data.data(), id: data.id, gymnastics, categories: categoriesDocs.docs.map(e => e.data())}
+    } else {
+        throw new Error("not found")
+    }
+}
+export const getGymnasticByID = async (compId, gymnId) => {
+    let data = await getDoc(doc(collection(getFirestore(), 'competitions', compId, "gymnastics"), gymnId))
+    if (data.exists()) {
+        let subjects = await getDocs(collection(getFirestore(), "subjects"))
+        let grades = await Promise.all(subjects.docs.map(async e => {
+            let gradeDoc = await getDoc(doc(collection(getFirestore(), 'competitions', compId, "gymnastics", gymnId, "scores"), e.id));
+            if (!gradeDoc.exists()) {
+                return null;
+            }
+            return {...gradeDoc.data(), id: gradeDoc.id, title:e.get('name') }
+        }))
+        console.log(grades.filter(e => e !== null))
+        return {...data.data(), id: data.id, scores: grades.filter(e => e !== null)};
     } else {
         throw new Error("not found")
     }

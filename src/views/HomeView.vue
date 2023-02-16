@@ -1,9 +1,11 @@
 <script>
 import {ref} from "vue"
-import CreateDialog from "../components/CreateDialog.vue";
+import CreateDialog from "../components/dialogs/CreateDialog.vue";
 import {useCompetitionStore} from "../stores/competition";
 import {useRouter} from "vue-router/dist/vue-router";
-export default  {
+import {useUserStore} from "../stores/user";
+
+export default {
   name: 'HomeView',
   components: {CreateDialog},
   setup() {
@@ -41,11 +43,28 @@ export default  {
     const competitionStore = useCompetitionStore()
     competitionStore.fetchData()
     const $router = useRouter()
-    const openCompetitions = function(event, row) {
+    const openCompetitions = function (event, row) {
       $router.push('/competition/' + row.id)
     }
-    return {competitionStore, columns,createDialog, openCompetitions}
+    const userStore = useUserStore()
+    return {competitionStore, columns, createDialog, openCompetitions, $router, userStore}
   },
+
+  mounted() {
+    this.checkUser()
+  },
+  methods: {
+    async checkUser() {
+      if (!this.userStore.loaded) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+        return this.checkUser();
+      } else {
+        if (this.userStore.user === null) {
+          this.$router.push("/login")
+        }
+      }
+    }
+  }
 
 }
 </script>
@@ -71,6 +90,6 @@ export default  {
         </template>
       </q-table>
     </div>
-    <CreateDialog :open="createDialog" @close="createDialog = false" />
+    <CreateDialog :open="createDialog" @close="createDialog = false"/>
   </main>
 </template>

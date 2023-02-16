@@ -42,6 +42,7 @@ import {setDoc, doc, collection, getFirestore} from "firebase/firestore"
 import {useQuasar} from "quasar";
 import {useRouter} from "vue-router/dist/vue-router";
 import {useUserStore} from "../stores/user";
+import {getErrorByCode} from "../utils/firebaseErrors";
 export default {
   name: "RegisterView",
   setup() {
@@ -63,7 +64,8 @@ export default {
         $q.notify({message: "You successfully registered", closeBtn: true, color:'success', position: 'bottom-right'})
         await $router.push("/")
       } catch (e) {
-        console.error(e) //todo
+        $q.notify({message: getErrorByCode(e.code), color: "negative", position: "bottom-right"})
+        console.error(e.code) //todo
       }
 
     }

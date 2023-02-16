@@ -1,31 +1,38 @@
 <template>
   <q-toolbar>
-    <q-btn dense flat round icon="menu" @click="toggleDrawer" />
-<!--    <q-avatar>-->
-<!--      <img src="https://cdn.quasar.dev/logo-v2/svg/logo-mono-white.svg">-->
-<!--    </q-avatar>-->
-
-    <q-toolbar-title>Quasar Framework</q-toolbar-title>
-
-    <q-btn flat round dense icon="account_circle" v-if="userStore.user !== null" />
+    <q-toolbar-title @click="goHome">GymScore</q-toolbar-title>
+    <q-btn flat round dense icon="account_circle" v-if="userStore.user !== null">
+        <q-menu>
+          <q-list style="min-width: 100px">
+            <q-item clickable v-close-popup @click="logout">
+              <q-item-section>Log out</q-item-section>
+            </q-item>
+          </q-list>
+        </q-menu>
+    </q-btn>
     <q-btn to="/login" label="Login" color="secondary" v-if="userStore.user === null" />
   </q-toolbar>
 </template>
 
 <script>
 import {useUserStore} from "../stores/user";
-
+import {useRouter} from "vue-router/dist/vue-router";
+import {signOut, getAuth} from "firebase/auth"
 export default {
   name: "Header",
-  methods: {
-    toggleDrawer() {
-      this.$emit('toggle')
-    }
-  },
   setup() {
     const userStore = useUserStore()
-
-    return {userStore}
+    const $router = useRouter()
+    const goHome = () => {
+      $router.push("/")
+    }
+    const logout = () => {
+      console.log('log')
+      userStore.setUser(null)
+      signOut(getAuth())
+      $router.push("/login")
+    }
+    return {userStore, goHome, logout}
   }
 }
 </script>

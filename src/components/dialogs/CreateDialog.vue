@@ -62,7 +62,7 @@
 <script>
 import {computed, ref} from "vue";
 import {addDoc, doc, collection, getFirestore} from "firebase/firestore"
-import {useCompetitionStore} from "../stores/competition";
+import {useCompetitionStore} from "../../stores/competition";
 export default {
   name: "CreateDialog",
   props: {open: Boolean},

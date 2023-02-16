@@ -1,6 +1,6 @@
 <template>
   <div class="q-pa-md" v-if="competition !== null">
-    <GymnasticsTable :data="competition.gymnastics" />
+    <GymnasticsTable :data="competition.gymnastics" @update="updateCompetition" />
   </div>
   <div v-if="competition == null">
     Loading...
@@ -23,14 +23,18 @@ export default {
     const competition = ref(null)
     const $router = useRouter()
     const $route = useRoute()
-    getCompetitionByID($route.params.id).then(comp => {
-      console.log(comp)
-      competition.value = comp;
-    }).catch((err) => {
-      console.error(err)
-      $router.push("/")
-    })
-    return {competition, $router}
+    const updateCompetition = () => {
+      getCompetitionByID($route.params.id).then(comp => {
+        console.log(comp)
+        competition.value = comp;
+      }).catch((err) => {
+        console.error(err)
+        $router.push("/")
+      })
+    }
+
+    updateCompetition()
+    return {competition, $router, updateCompetition}
   },
 }
 </script>
