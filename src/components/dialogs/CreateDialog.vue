@@ -35,7 +35,7 @@
   </q-dialog>
 </template>
 
-<style>
+<style scoped>
 .card {
   display: flex;
   flex-direction: column;
@@ -46,6 +46,7 @@
   margin-top: 10px;
 }
 .dates {
+  margin-top: 10px;
   display: flex;
   flex-direction: row;
   justify-content: space-between;

@@ -12,13 +12,7 @@ export default {
 
     const createDialog = ref(false)
     const columns = ref([
-      {
-        name: 'id',
-        label: 'ID',
-        field: 'id',
-        align: 'left',
-
-      }, {
+       {
         name: 'title',
         label: 'Title',
         field: 'title',

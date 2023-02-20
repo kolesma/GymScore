@@ -11,7 +11,7 @@
       <q-space/>
       <q-input borderless dense debounce="300" color="primary" v-model="filter">
         <template v-slot:append>
-          <q-icon name="search"/>
+          <q-btn icon="system_update_alt" round color="primary" @click="report"/>
         </template>
       </q-input>
     </template>
@@ -24,18 +24,21 @@ import AddGrade from "../dialogs/AddGrade.vue";
 import {useRoute, useRouter} from "vue-router/dist/vue-router";
 import {ref} from "vue"
 import CreateGymnasticsDialog from "../dialogs/CreateGymnasticsDialog.vue";
+import {getSubjects} from "../api/subject";
+import {exportFile} from "quasar";
 
 export default {
   name: "GymnasticsTable",
   props: {
-    data: Array
+    data: Array,
+    name: String,
   },
   components: {
     AddGrade,
     CreateGymnasticsDialog
   },
   setup(props, {emit}) {
-    const columns = [
+    const columns = ref([
       {
         name: 'name',
         label: 'Name',
@@ -51,27 +54,54 @@ export default {
         label: 'Club',
         field: 'club',
         align: 'left'
-      }, {
-        name: 'ball',
-        label: 'Ball',
-        field: 'ball',
-        // format: (val, row) => val.total || 0
-      }, {
-        name: 'floor',
-        label: 'Floor',
-        field: 'floor',
-        // format: (val, row) => val.total || 0
-      }, {
+      },
+      // {
+      //   name: 'ball',
+      //   label: 'Ball',
+      //   field: 'ball',
+      //   format: (val, row) => row.scores[0].a + row.scores[0].e + row.scores[0].d
+      // },
+      {
         name: 'total',
         label: 'Total',
         field: 'total',
       }
-    ]
+    ])
     const $router = useRouter()
     const $route = useRoute()
     const competitionId = $route.params.id
 
     const createDialog = ref(false)
+
+    const report = async () => {
+      function wrapCsvValue (val, formatFn, row) {
+        let formatted = formatFn !== void 0
+            ? formatFn(val, row)
+            : val
+
+        formatted = formatted === void 0 || formatted === null
+            ? ''
+            : String(formatted)
+
+        return `${formatted}`
+      }
+      const content = [columns.value.map(col => wrapCsvValue(col.label)).join(";")].concat(
+          props.data.map(row => columns.value.map(col => wrapCsvValue(
+              typeof col.field === 'function'
+                  ? col.field(row)
+                  : row[ col.field === void 0 ? col.name : col.field ],
+              col.format,
+              row
+          )).join(';'))
+      ).join('\n')
+      console.log(props)
+      const status = exportFile(
+          props.name + '.csv',
+          content,
+          'text/csv'
+      )
+      console.log(content)
+    }
 
     const openGymnastic = function(event, row) {
       $router.push('/competition/' + competitionId + '/' + row.id)
@@ -80,7 +110,19 @@ export default {
     const update = () => {
       emit('update')
     }
-    return {columns, openGymnastic, createDialog, update}
+
+    getSubjects().then((subjects) => {
+      let cols = subjects.map((subject, index) => {
+        return {
+          name: subject.name,
+          label: subject.name.split('')[0].toUpperCase() + subject.name.substring(1),
+          field: subject.name,
+          format: (val, row) => +row.scores[index].a + +row.scores[index].e + +row.scores[index].d
+        }
+      })
+      columns.value = [...columns.value.slice(0, columns.value.length - 1), ...cols, columns.value[columns.value.length - 1]];
+    })
+    return {columns, openGymnastic, createDialog, update, report}
   }
 }
 </script>
