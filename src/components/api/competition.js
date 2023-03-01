@@ -3,7 +3,7 @@
  * @param id ID of doc
  * @returns {Promise<{id: string, title: string}>}
  */
-import {collection, doc, getDoc,query, onSnapshot, orderBy, getDocs, getFirestore} from "firebase/firestore";
+import {collection, deleteDoc, doc, getDoc,query, onSnapshot, orderBy, getDocs, getFirestore} from "firebase/firestore";
 
 export const getCompetitionByID = async (id) => {
     let data = await getDoc(doc(collection(getFirestore(), 'competitions'), id))
@@ -33,6 +33,11 @@ export const getGymnasticByID = async (compId, gymnId) => {
         throw new Error("not found")
     }
 }
+
+export const deleteGymnasticByID = async (comp, id) => {
+    await deleteDoc(doc(collection(getFirestore(), "competitions", comp, "gymnastics"), id))
+}
+
 
 export const subscribeGymnastic = async (compId, gymnId, callback) => {
     onSnapshot(doc(collection(getFirestore(), 'competitions', compId, "gymnastics"), gymnId), async (data) => {

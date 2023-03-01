@@ -4,19 +4,24 @@
       :rows="data"
       :columns="columns"
       row-key="name"
+      v-model:selected="selected"
+      selection="multiple"
       @row-click="openGymnastic"
   >
     <template v-slot:top>
-      <q-btn color="primary" label="Add gymnastic" @click="createDialog = true"/>
+      <div class="buttons">
+        <q-btn color="primary" text-color="black" label="Add gymnastic" @click="createDialog = true"/>
+        <q-btn v-if="selected.length > 0" color="red" label="Delete" @click="deleteGymnastics"/>
+      </div>
       <q-space/>
       <q-input borderless dense debounce="300" color="primary" v-model="filter">
         <template v-slot:append>
-          <q-btn icon="system_update_alt" round color="primary" @click="report"/>
+          <q-btn icon="system_update_alt" text-color="black" round color="primary" @click="report"/>
         </template>
       </q-input>
     </template>
   </q-table>
-  <CreateGymnasticsDialog :open="createDialog" @close="createDialog = false" @update="update" />
+  <CreateGymnasticsDialog :open="createDialog" @close="createDialog = false" @update="update"/>
 </template>
 
 <script>
@@ -25,7 +30,8 @@ import {useRoute, useRouter} from "vue-router/dist/vue-router";
 import {ref} from "vue"
 import CreateGymnasticsDialog from "../dialogs/CreateGymnasticsDialog.vue";
 import {getSubjects} from "../api/subject";
-import {exportFile} from "quasar";
+import {exportFile, useQuasar} from "quasar";
+import {deleteGymnasticByID} from "../api/competition";
 
 export default {
   name: "GymnasticsTable",
@@ -65,6 +71,7 @@ export default {
         name: 'total',
         label: 'Total',
         field: 'total',
+        sortable: true
       }
     ])
     const $router = useRouter()
@@ -74,7 +81,7 @@ export default {
     const createDialog = ref(false)
 
     const report = async () => {
-      function wrapCsvValue (val, formatFn, row) {
+      function wrapCsvValue(val, formatFn, row) {
         let formatted = formatFn !== void 0
             ? formatFn(val, row)
             : val
@@ -85,16 +92,16 @@ export default {
 
         return `${formatted}`
       }
+
       const content = [columns.value.map(col => wrapCsvValue(col.label)).join(";")].concat(
           props.data.map(row => columns.value.map(col => wrapCsvValue(
               typeof col.field === 'function'
                   ? col.field(row)
-                  : row[ col.field === void 0 ? col.name : col.field ],
+                  : row[col.field === void 0 ? col.name : col.field],
               col.format,
               row
           )).join(';'))
-      ).join('\n')
-      console.log(props)
+      ).join('\n').replaceAll('.', ',')
       const status = exportFile(
           props.name + '.csv',
           content,
@@ -103,11 +110,13 @@ export default {
       console.log(content)
     }
 
-    const openGymnastic = function(event, row) {
+    const openGymnastic = function (event, row) {
       $router.push('/competition/' + competitionId + '/' + row.id)
     }
 
     const update = () => {
+
+      console.log('update')
       emit('update')
     }
 
@@ -122,7 +131,24 @@ export default {
       })
       columns.value = [...columns.value.slice(0, columns.value.length - 1), ...cols, columns.value[columns.value.length - 1]];
     })
-    return {columns, openGymnastic, createDialog, update, report}
+
+    const selected = ref([])
+
+    const $q = useQuasar();
+
+    const deleteGymnastics = async () => {
+      try {
+        $q.loading.show()
+        await Promise.all(selected.value.map(gymn => deleteGymnasticByID(competitionId, gymn.id)))
+        $q.notify({message: "Gymnastics were deleted!", color: 'green'})
+        update();
+      } catch (e) {
+        console.log(e.message)
+        $q.notify({message: "There was an error. Please try again later", color: 'red'})
+      }
+    }
+
+    return {columns, openGymnastic, deleteGymnastics, selected, createDialog, update, report}
   }
 }
 </script>

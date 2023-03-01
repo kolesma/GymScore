@@ -89,6 +89,7 @@ export default {
   },
   methods: {
     async create() {
+      this.$q.loading.show()
       let competition = {
         title: this.title,
         place: this.place,
@@ -97,6 +98,7 @@ export default {
       }
       let result = await addDoc(collection(getFirestore(), "competitions"), competition);
       await this.competitionStore.fetchData()
+      this.$q.loading.hide()
       console.log(result)
     }
   }

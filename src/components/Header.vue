@@ -1,6 +1,9 @@
 <template>
-  <q-toolbar>
-    <q-toolbar-title @click="goHome">GymScore</q-toolbar-title>
+  <q-toolbar class="text-black">
+    <q-avatar>
+      <img src="../assets/logo.png" alt="logo">
+    </q-avatar>
+    <q-toolbar-title @click="goHome" >GymScore</q-toolbar-title>
     <q-btn flat round dense icon="account_circle" v-if="userStore.user !== null">
         <q-menu>
           <q-list style="min-width: 100px">
@@ -18,6 +21,7 @@
 import {useUserStore} from "../stores/user";
 import {useRouter} from "vue-router/dist/vue-router";
 import {signOut, getAuth} from "firebase/auth"
+
 export default {
   name: "Header",
   setup() {

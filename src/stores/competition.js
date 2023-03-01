@@ -1,9 +1,8 @@
 import {defineStore} from 'pinia'
-import {collection, getDocs, getFirestore} from "firebase/firestore"
+import {collection, deleteDoc, doc, getDocs, getFirestore} from "firebase/firestore"
 
 export const useCompetitionStore = defineStore('competition', {
-    state: () => ({data: []}),
-    actions: {
+    state: () => ({data: []}), actions: {
         setData(data) {
             this.data = data
         },
@@ -18,6 +17,11 @@ export const useCompetitionStore = defineStore('competition', {
                     endDate: doc.get('endDate')
                 }
             }))
+        },
+
+        async deleteCompetition(id) {
+            await deleteDoc(doc(collection(getFirestore(), "competitions"), id))
+            await this.fetchData();
         }
     }
 })

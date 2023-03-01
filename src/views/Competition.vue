@@ -13,6 +13,7 @@ import {ref} from "vue";
 import {useRoute, useRouter} from "vue-router/dist/vue-router";
 import GymnasticsTable from "../components/tables/GymnasticsTable.vue";
 import CategoriesTable from "../components/tables/CategoriesTable.vue";
+import {useQuasar} from "quasar";
 
 export default {
   name: "Competition",
@@ -23,6 +24,7 @@ export default {
     const competition = ref(null)
     const $router = useRouter()
     const $route = useRoute()
+    const $q = useQuasar()
     const updateCompetition = () => {
       getCompetitionByID($route.params.id).then(async comp => {
         let result = []
@@ -31,6 +33,7 @@ export default {
           result.push(obj)
         }
         competition.value = {...comp, gymnastics: result};
+        $q.loading.hide()
       }).catch((err) => {
         console.error(err)
         $router.push("/")
