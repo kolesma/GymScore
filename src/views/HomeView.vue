@@ -11,6 +11,7 @@ export default {
   components: {CreateDialog},
   setup() {
     const selected = ref([])
+    const filter = ref('')
     const createDialog = ref(false)
     const columns = ref([
       {
@@ -59,10 +60,11 @@ export default {
       $router.push('/competition/' + row.id)
     }
     const userStore = useUserStore()
-    return {competitionStore, deleteCompetitions, selected, columns, createDialog, openCompetitions, $router, userStore}
+    return {competitionStore, filter, deleteCompetitions, selected, columns, createDialog, openCompetitions, $router, userStore}
   },
 
   mounted() {
+    this.$q.loading.show()
     this.checkUser()
   },
   methods: {
@@ -71,6 +73,8 @@ export default {
         await new Promise(resolve => setTimeout(resolve, 100));
         return this.checkUser();
       } else {
+        this.$q.loading.hide()
+
         if (this.userStore.user === null) {
           this.$router.push("/login")
         }
@@ -83,29 +87,36 @@ export default {
 
 <template>
   <main>
-    <div class="q-pa-md">
+    <div class="q-pa-md" v-if="userStore.user !== null">
       <q-table
           title="Competitions"
           :rows="competitionStore.data"
           :columns="columns"
-          selection="multiple"
+          :selection="userStore.user.role === 'admin' ? 'multiple' : 'none'"
           row-key="title"
+          :pagination="{rowsPerPage: 10}"
+          :filter="filter"
           v-model:selected="selected"
           @row-click="openCompetitions"
       >
         <template v-slot:top>
-          <div class="buttons">
-            <q-btn color="primary" text-color="black" label="Add competition" @click="createDialog = true"/>
-            <q-btn v-if="selected.length > 0" color="red" label="Delete" @click="deleteCompetitions"/>
-          </div>
+
           <q-space/>
-          <q-input borderless dense debounce="300" color="primary" v-model="filter">
-            <template v-slot:append>
-              <q-icon name="search"/>
-            </template>
-          </q-input>
+          <div class="buttons">
+
+            <q-input dense debounce="300" outlined color="primary" v-model="filter">
+              <template v-slot:append>
+                <q-icon name="search"/>
+              </template>
+            </q-input>
+            <q-btn v-if="userStore.user.role === 'admin'" color="primary" text-color="black" icon="add" @click="createDialog = true"/>
+            <q-btn v-if="selected.length > 0 && userStore.user.role === 'admin'" color="secondary" icon="delete" @click="deleteCompetitions"/>
+          </div>
         </template>
       </q-table>
+    </div>
+    <div class="q-pa-md" v-if="userStore.loaded === false">
+      <Loading />
     </div>
     <CreateDialog :open="createDialog" @close="createDialog = false"/>
   </main>
@@ -115,7 +126,7 @@ export default {
 <style>
 .buttons {
   display: flex;
-
+  height: 38px;
 }
 
 .buttons > * {

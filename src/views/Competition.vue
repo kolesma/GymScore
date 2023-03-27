@@ -2,9 +2,6 @@
   <div class="q-pa-md" v-if="competition !== null">
     <GymnasticsTable :name="competition.title" :data="competition.gymnastics" @update="updateCompetition" />
   </div>
-  <div v-if="competition == null">
-    Loading...
-  </div>
 </template>
 
 <script>
@@ -14,11 +11,20 @@ import {useRoute, useRouter} from "vue-router/dist/vue-router";
 import GymnasticsTable from "../components/tables/GymnasticsTable.vue";
 import CategoriesTable from "../components/tables/CategoriesTable.vue";
 import {useQuasar} from "quasar";
+import {collection, getDocs, getFirestore, orderBy, query} from "firebase/firestore";
 
 export default {
   name: "Competition",
   components: {
     GymnasticsTable, CategoriesTable
+  },
+  watch: {
+    competition() {
+      this.$q.loading.hide()
+    }
+  },
+  mounted() {
+    this.$q.loading.show()
   },
   setup() {
     const competition = ref(null)
@@ -27,11 +33,9 @@ export default {
     const $q = useQuasar()
     const updateCompetition = () => {
       getCompetitionByID($route.params.id).then(async comp => {
-        let result = []
-        for(let gymn of comp.gymnastics) {
-          let obj = await getGymnasticByID(comp.id ,gymn.id)
-          result.push(obj)
-        }
+        console.log('fetched')
+        let result = await Promise.all(comp.gymnastics.map(gymn => getGymnasticByID(comp.id ,gymn.id)))
+       console.log('fetched details')
         competition.value = {...comp, gymnastics: result};
         $q.loading.hide()
       }).catch((err) => {

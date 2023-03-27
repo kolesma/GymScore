@@ -40,13 +40,14 @@ import {useUserStore} from "../stores/user";
 import {useQuasar} from "quasar";
 import { useRouter } from 'vue-router';
 import {getErrorByCode} from "../utils/firebaseErrors";
+import {collection, doc, getDoc, getFirestore} from "firebase/firestore";
 
 export default {
   name: "LoginView",
   setup() {
     const userStore = useUserStore()
-    const email = ref("user@mail.com")
-    const password = ref("password")
+    const email = ref("")
+    const password = ref("")
     const loading = ref(false)
     const $q = useQuasar()
     const $router = useRouter()
@@ -55,7 +56,8 @@ export default {
       loading.value = true
       try {
         let result = await signInWithEmailAndPassword(getAuth(), email.value, password.value)
-        userStore.setUser(result.user)
+        let userDoc = await getDoc(doc(collection(getFirestore(), "users"), result.user.uid));
+        userStore.setUser(userDoc.data())
         $q.notify({message: "You successfully logged in", closeBtn: true, color:'success', position: 'bottom-right'})
         await $router.push("/")
       } catch (e) {

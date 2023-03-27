@@ -4,21 +4,29 @@
       :rows="data"
       :columns="columns"
       row-key="name"
+      :filter="filter"
+      :pagination="{rowsPerPage: 10}"
       v-model:selected="selected"
-      selection="multiple"
+      :selection="userStore.user.role === 'admin' ? 'multiple' : 'none'"
       @row-click="openGymnastic"
   >
     <template v-slot:top>
-      <div class="buttons">
-        <q-btn color="primary" text-color="black" label="Add gymnastic" @click="createDialog = true"/>
-        <q-btn v-if="selected.length > 0" color="red" label="Delete" @click="deleteGymnastics"/>
+
+      <div class="competition-name">
+        {{name}}
       </div>
       <q-space/>
-      <q-input borderless dense debounce="300" color="primary" v-model="filter">
-        <template v-slot:append>
-          <q-btn icon="system_update_alt" text-color="black" round color="primary" @click="report"/>
-        </template>
-      </q-input>
+      <div class="buttons"  v-if="userStore.user.role === 'admin'" >
+        <q-input dense debounce="300" outlined color="primary" v-model="filter">
+          <template v-slot:append>
+            <q-icon name="search"/>
+          </template>
+        </q-input>
+        <q-btn icon="system_update_alt" class="export-icon" text-color="black"  color="primary" @click="report" label="Export"/>
+
+        <q-btn color="primary" text-color="black" icon="add" @click="createDialog = true"/>
+        <q-btn v-if="selected.length > 0 && userStore.user.role === 'admin'" color="red" icon="delete" @click="deleteGymnastics"/>
+      </div>
     </template>
   </q-table>
   <CreateGymnasticsDialog :open="createDialog" @close="createDialog = false" @update="update"/>
@@ -32,6 +40,7 @@ import CreateGymnasticsDialog from "../dialogs/CreateGymnasticsDialog.vue";
 import {getSubjects} from "../api/subject";
 import {exportFile, useQuasar} from "quasar";
 import {deleteGymnasticByID} from "../api/competition";
+import {useUserStore} from "../../stores/user";
 
 export default {
   name: "GymnasticsTable",
@@ -44,6 +53,7 @@ export default {
     CreateGymnasticsDialog
   },
   setup(props, {emit}) {
+    const filter = ref('')
     const columns = ref([
       {
         name: 'name',
@@ -75,6 +85,8 @@ export default {
       }
     ])
     const $router = useRouter()
+
+    const userStore = useUserStore()
     const $route = useRoute()
     const competitionId = $route.params.id
 
@@ -148,11 +160,18 @@ export default {
       }
     }
 
-    return {columns, openGymnastic, deleteGymnastics, selected, createDialog, update, report}
-  }
+    return {columns, filter, openGymnastic, userStore, deleteGymnastics, selected, createDialog, update, report}
+  },
 }
 </script>
 
 <style scoped>
+.export-icon {
+  margin-left: 6px;
+}
 
+.competition-name {
+  font-size: 20px;
+  margin-left: 10px
+}
 </style>

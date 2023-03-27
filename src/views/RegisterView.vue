@@ -4,10 +4,10 @@
     <q-input v-model="name" class="input" label="Name" type="text" outlined></q-input>
     <q-input v-model="email" class="input" label="E-mail" type="email" outlined></q-input>
     <q-input v-model="password" class="input" label="Password" type="password" outlined></q-input>
+    <q-toggle v-model="admin" label="Are you administrator?" />
 
     <q-btn class="button" @click="register" color="primary" label="Register" />
     <a href="/login">Already have an account?</a>
-
   </div>
 </template>
 
@@ -45,10 +45,27 @@ import {useUserStore} from "../stores/user";
 import {getErrorByCode} from "../utils/firebaseErrors";
 export default {
   name: "RegisterView",
+
+  watch: {
+    admin(value) {
+      console.log(value)
+      if(!this.email.endsWith('gymscore.com') && value === true) {
+        this.admin = false;
+        this.$q.notify({message: "Only employees from GymScore can be an administrator", color: 'red'})
+      }
+    },
+    email(value) {
+      if(!value.endsWith('gymscore.com') && this.admin === true) {
+        this.admin = false;
+        this.$q.notify({message: "Only employees from GymScore can be an administrator", color: 'red'})
+      }
+    }
+  },
   setup() {
-    const email = ref("user@mail.com")
-    const password = ref("password")
-    const name = ref("Adam Driver")
+    const email = ref("")
+    const password = ref("")
+    const name = ref("")
+    const admin = ref(false)
     const $q = useQuasar()
     const $router = useRouter()
     const userStore = useUserStore()
@@ -58,7 +75,8 @@ export default {
         let result = await createUserWithEmailAndPassword(getAuth(), email.value, password.value)
         await setDoc(doc(collection(getFirestore(), "users"), result.user.uid), {
           fullName: name.value,
-          email: email.value
+          email: email.value,
+          role: admin.value === true ? 'admin' : 'judge'
         })
         userStore.setUser(result.user)
         $q.notify({message: "You successfully registered", closeBtn: true, color:'success', position: 'bottom-right'})
@@ -70,7 +88,7 @@ export default {
 
     }
 
-    return {email, password, name, register}
+    return {email, password, name, admin, register}
   }
 }
 </script>
