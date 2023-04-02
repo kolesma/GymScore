@@ -78,7 +78,6 @@ export default {
           email: email.value,
           role: admin.value === true ? 'admin' : 'judge'
         })
-        userStore.setUser(result.user)
         $q.notify({message: "You successfully registered", closeBtn: true, color:'success', position: 'bottom-right'})
         await $router.push("/")
       } catch (e) {

@@ -138,7 +138,7 @@ export default {
           name: subject.name,
           label: subject.name.split('')[0].toUpperCase() + subject.name.substring(1),
           field: subject.name,
-          format: (val, row) => +row.scores[index].a + +row.scores[index].e + +row.scores[index].d
+          format: (val, row) => (+row.scores[index].a + +row.scores[index].e + +row.scores[index].d).toFixed(3)
         }
       })
       columns.value = [...columns.value.slice(0, columns.value.length - 1), ...cols, columns.value[columns.value.length - 1]];
